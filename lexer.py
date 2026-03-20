@@ -1,7 +1,7 @@
 # =============================================================================
 # lexer.py  –  Hand-written lexer for the mini-language
 # Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
-# Course : CS0057 - Programming Languages
+# Course : CS0035 - Programming Languages
 # =============================================================================
 # Architecture is a direct evolution of the regex-based tokenizer from
 # Technical Assessments 1 and 2, refactored into a class with:

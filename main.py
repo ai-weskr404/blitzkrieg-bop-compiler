@@ -2,7 +2,7 @@
 # =============================================================================
 # main.py  –  Entry point for the mini-language compiler & interpreter
 # Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
-# Course : CS0057 - Programming Languages
+# Course : CS0035 - Programming Languages
 # =============================================================================
 # Usage:
 #   python main.py <source_file> [--trace] [--no-exp] [--strict-input]

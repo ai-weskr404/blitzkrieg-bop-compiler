@@ -1,7 +1,7 @@
 # =============================================================================
 # tokens.py  –  Token types and Token dataclass
 # Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
-# Course : CS0057 - Programming Languages
+# Course : CS0035 - Programming Languages
 # =============================================================================
 # Extends the Token NamedTuple pattern from Technical Assessments 1 & 2.
 # =============================================================================
