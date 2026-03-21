@@ -28,7 +28,7 @@ from errors      import CompilerError
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog        = "minicompiler",
-        description = "Mini-language compiler & interpreter (CSTPLANGS Project)",
+        description = "Mini-language compiler & interpreter (Programming Languages)",
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = """
 Examples:
