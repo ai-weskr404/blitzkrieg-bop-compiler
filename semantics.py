@@ -1,6 +1,6 @@
 # =============================================================================
 # semantics.py  –  Semantic analysis pass
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # The semantic pass walks the AST *before* execution to catch:

@@ -1,6 +1,6 @@
 # =============================================================================
 # lexer.py  –  Hand-written lexer for the mini-language
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # Per project spec:

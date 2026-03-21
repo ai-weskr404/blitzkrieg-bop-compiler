@@ -1,6 +1,6 @@
 # =============================================================================
 # repl.py  –  Interactive REPL (Read-Eval-Print Loop)
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # Per spec rule 1: every statement MUST end with a semicolon.

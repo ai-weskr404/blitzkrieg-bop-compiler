@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # =============================================================================
 # main.py  –  Entry point for the mini-language compiler & interpreter
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # Usage:
@@ -21,10 +21,10 @@ from cli import build_arg_parser, run_pipeline
 
 _BANNER = """\033[96m
 ╔══════════════════════════════════════════════════════╗
-║        MINI-LANGUAGE COMPILER & INTERPRETER          ║
+║        MINI-LANGUAGE INTERPRETER                     ║
 ║        CSTPLANGS – Translation of Programming Lang   ║
 ║        Nadales, Russel Rome F.                       ║
-║        Ornos, Csypress Klent                         ║
+║        Ornos, Csypres Klent B.                       ║
 ╚══════════════════════════════════════════════════════╝\033[0m
 """
 

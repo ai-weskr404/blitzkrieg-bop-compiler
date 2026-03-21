@@ -1,6 +1,6 @@
 # =============================================================================
 # tests/test_all.py  –  Unit tests for the mini-compiler pipeline
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # Run with:  python -m pytest tests/ -v

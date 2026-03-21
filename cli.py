@@ -1,6 +1,6 @@
 # =============================================================================
 # cli.py  –  Command-line interface helpers
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # Provides:
@@ -28,7 +28,7 @@ from errors      import CompilerError
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog        = "minicompiler",
-        description = "Mini-language compiler & interpreter (Programming Languages)",
+        description = "Mini-language interpreter (Programming Languages)",
         formatter_class = argparse.RawDescriptionHelpFormatter,
         epilog = """
 Examples:

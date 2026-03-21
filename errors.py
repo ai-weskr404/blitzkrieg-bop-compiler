@@ -1,6 +1,6 @@
 # =============================================================================
 # errors.py  –  Compiler error hierarchy with pretty diagnostics
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # Every error carries the original source text so it can render a

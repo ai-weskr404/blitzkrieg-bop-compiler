@@ -1,6 +1,6 @@
 # =============================================================================
 # interpreter.py  –  AST-walking interpreter / evaluator
-# Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
+# Authors: Nadales, Russel Rome F. | Ornos, Csypres Klent B.
 # Course : CS0035 - Programming Languages
 # =============================================================================
 # The interpreter visits each node of the AST and either:
