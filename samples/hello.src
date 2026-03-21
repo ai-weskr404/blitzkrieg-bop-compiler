@@ -1,0 +1,11 @@
+/* samples/hello.src
+   Demonstrates: var declaration, assignment, output */
+
+var greeting;
+greeting = 42;
+output greeting;
+
+var x = 10;
+var y = 20;
+var sum = x + y;
+output sum;

@@ -3,10 +3,9 @@
 # Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
 # Course : CS0035 - Programming Languages
 # =============================================================================
-# Launch with:
-#   python repl.py
-#   python repl.py --trace
-#   python repl.py --strict-input
+# Per spec rule 1: every statement MUST end with a semicolon.
+# Typing "var x = 5" without a semicolon will produce a ParseError.
+# Typing "var x = 5;" works correctly.
 # =============================================================================
 
 import sys
@@ -27,7 +26,7 @@ _BANNER = """\033[96m
 ║   MINI-LANGUAGE  –  Interactive REPL                     ║
 ║   CSTPLANGS · Nadales · Ornos                            ║
 ║                                                          ║
-║   Type one statement and press Enter to run it.          ║
+║   Every statement MUST end with a semicolon  ;           ║
 ║   Commands:  :quit  :clear  :vars  :help                 ║
 ╚══════════════════════════════════════════════════════════╝\033[0m
 """
@@ -40,20 +39,28 @@ _HELP = """
   :help          Show this message
 
 \033[1mLanguage Quick Reference\033[0m
-  var x          Declare variable x (value = uninitialized)
-  var x = 5      Declare and initialise
-  x = expr       Reassign (must be declared first with var)
-  output expr    Print a value
-  input          Read a number from keyboard (use as expression)
-  + - * / ^      Arithmetic  (^ = exponent, right-associative)
-  ( )            Grouping
-  # comment      Line comment
+  var x;             Declare variable x (uninitialized)
+  var x = 5;         Declare and initialise
+  x = expr;          Reassign (must be declared first with var)
+  output expr;       Print a value
+  input              Read a number from keyboard (use as expression)
+  + - * / ^          Arithmetic  (^ = exponent, right-associative)
+  ( )                Grouping
+  # comment          Line comment
+  /* comment */      Block comment
+
+  \033[93mNOTE: Every statement must end with  ;\033[0m
+  Missing semicolon → ParseError
 
 \033[1mExamples\033[0m
-  >>> var x = 10
-  >>> var y = x * 2
-  >>> output y
+  >>> var x = 10;
+  >>> var y = x * 2;
+  >>> output y;
   20
+  >>> var z = input;
+  5
+  >>> output z + x;
+  15
 """
 
 
@@ -83,6 +90,7 @@ def run_repl(*, trace=False, enable_caret=True, strict_input=False):
         if not stripped:
             continue
 
+        # ── REPL commands ─────────────────────────────────────────────────
         if stripped in (":quit", ":q", "quit", "exit"):
             print("Bye!")
             return
@@ -109,7 +117,8 @@ def run_repl(*, trace=False, enable_caret=True, strict_input=False):
             continue
 
         # ── Compile & execute ─────────────────────────────────────────────
-        source = stripped + "\n"
+        # No '\n' appended — user must type their own semicolon per spec rule 1.
+        source = stripped
         try:
             lexer  = Lexer(source, enable_caret=enable_caret)
             tokens = lexer.tokenize()
@@ -128,10 +137,10 @@ def run_repl(*, trace=False, enable_caret=True, strict_input=False):
             for name in analyzer.symbols.all_names():
                 declared.add(name)
 
-            interp        = Interpreter(source, strict_input=strict_input, io_in=input, io_out=print)
-            interp.env    = env
+            interp     = Interpreter(source, strict_input=strict_input, io_in=input, io_out=print)
+            interp.env = env
             interp.execute(ast)
-            env           = interp.env
+            env        = interp.env
 
         except CompilerError as exc:
             print(exc.pretty(), file=sys.stderr)

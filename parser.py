@@ -3,26 +3,25 @@
 # Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
 # Course : CS0035 - Programming Languages
 # =============================================================================
-# Grammar implemented (EBNF):
+# Per project spec rule 1: ALL statements MUST end with a semicolon.
+# Newlines are insignificant whitespace (already dropped by the Lexer).
+# Therefore _consume_eol() ONLY accepts TT.SEMICOLON — nothing else.
 #
+# Grammar (EBNF):
 #   program   := { statement } EOF
-#   statement := vardecl | assign | outstmt | empty
-#   vardecl   := "var" IDENT [ "=" expr ] eol
-#   assign    := IDENT "=" expr eol
-#   outstmt   := "output" expr eol
-#   empty     := eol
+#   statement := vardecl | assign | outstmt
+#   vardecl   := "var" IDENT [ "=" expr ] ";"
+#   assign    := IDENT "=" expr ";"
+#   outstmt   := "output" expr ";"
 #
 #   expr      := term    { ("+" | "-")  term    }
 #   term      := power   { ("*" | "/")  power   }
-#   power     := unary   { "^"          unary   }     # right-assoc → recursion
+#   power     := unary   { "^"          unary   }   # right-assoc via recursion
 #   unary     := "-" unary | factor
 #   factor    := NUMBER | IDENT | "input" | "(" expr ")"
-#
-#   eol       := NEWLINE | ";"
 # =============================================================================
 
 from __future__ import annotations
-
 from typing import List, Optional
 
 from tokens    import Token, TT
@@ -34,41 +33,24 @@ from errors import ParseError
 
 
 class Parser:
-    """Converts a token list produced by the Lexer into an AST.
-
-    Parameters
-    ----------
-    tokens  : flat list including the final TT.EOF token
-    source  : original source string, forwarded to ParseError for diagnostics
-    """
+    """Converts a token list produced by the Lexer into an AST."""
 
     def __init__(self, tokens: List[Token], source: str = "") -> None:
-        self._tokens  = tokens
-        self._source  = source
-        self._pos     = 0
+        self._tokens = tokens
+        self._source = source
+        self._pos    = 0
 
     # ── Public entry point ────────────────────────────────────────────────
 
     def parse(self) -> Program:
-        """Parse the full program and return the root Program node."""
         stmts: list[ASTNode] = []
-
-        # Absorb any leading blank lines
-        while self._is_eol():
-            self._advance()
-
         while not self._check(TT.EOF):
             stmt = self._statement()
             if stmt is not None:
                 stmts.append(stmt)
-            # Absorb consecutive blank lines between statements
-            while self._is_eol():
-                self._advance()
-
         self._expect(TT.EOF)
         first_tok = self._tokens[0]
-        return Program(statements=tuple(stmts),
-                       line=first_tok.line, col=first_tok.column)
+        return Program(statements=tuple(stmts), line=first_tok.line, col=first_tok.column)
 
     # ── Token-stream helpers ──────────────────────────────────────────────
 
@@ -88,9 +70,6 @@ class Parser:
     def _check(self, *types: str) -> bool:
         return self._current().type in types
 
-    def _is_eol(self) -> bool:
-        return self._current().type in (TT.NEWLINE, TT.SEMICOLON)
-
     def _match(self, *types: str) -> Optional[Token]:
         if self._check(*types):
             return self._advance()
@@ -103,21 +82,20 @@ class Parser:
         default_msg = f"Expected {ttype}, but found {tok.type} ({tok.value!r})"
         raise ParseError(msg or default_msg, tok.line, tok.column, self._source)
 
-    def _consume_eol(self) -> None:
-        """Consume one or more EOL tokens; raise if none present."""
-        if not self._is_eol():
+    def _consume_semicolon(self) -> None:
+        """Require a semicolon — the ONLY valid statement terminator per spec rule 1."""
+        if not self._check(TT.SEMICOLON):
             tok = self._current()
             raise ParseError(
-                f"Expected end of statement (newline or ';'), found {tok.type} ({tok.value!r})",
+                f"Missing ';' at end of statement — found {tok.type} ({tok.value!r}) instead.\n"
+                f"  Spec rule 1: ALL statements must end with a semicolon.",
                 tok.line, tok.column, self._source,
             )
-        while self._is_eol():
-            self._advance()
+        self._advance()     # consume the ';'
 
     # ── Statements ────────────────────────────────────────────────────────
 
     def _statement(self) -> Optional[ASTNode]:
-        """Dispatch to the appropriate statement parser."""
         tok = self._current()
 
         if tok.type == TT.VAR:
@@ -127,12 +105,11 @@ class Parser:
             return self._output_stmt()
 
         if tok.type == TT.IDENT:
-            # Look-ahead: IDENT '=' is an assignment, anything else is an error
             if self._peek().type == TT.EQUAL:
                 return self._assignment()
             else:
                 raise ParseError(
-                    f"Unexpected identifier {tok.value!r} – "
+                    f"Unexpected identifier {tok.value!r} — "
                     "did you mean 'output' or an assignment?",
                     tok.line, tok.column, self._source,
                 )
@@ -143,40 +120,35 @@ class Parser:
         )
 
     def _var_decl(self) -> VarDecl:
-        """var IDENT [ '=' expr ] eol"""
-        kw   = self._advance()                  # consume 'var'
-        name = self._expect(TT.IDENT,
-                             msg="Expected an identifier after 'var'")
-
+        """var IDENT [ '=' expr ] ';'"""
+        kw   = self._advance()
+        name = self._expect(TT.IDENT, msg="Expected an identifier after 'var'")
         initializer: Optional[ASTNode] = None
         if self._match(TT.EQUAL):
             initializer = self._expr()
-
-        self._consume_eol()
-        return VarDecl(name=name.value,
-                       initializer=initializer,
+        self._consume_semicolon()
+        return VarDecl(name=name.value, initializer=initializer,
                        line=kw.line, col=kw.column)
 
     def _assignment(self) -> Assignment:
-        """IDENT '=' expr eol"""
-        name = self._advance()                  # consume identifier
-        self._expect(TT.EQUAL)                  # consume '='
+        """IDENT '=' expr ';'"""
+        name = self._advance()
+        self._expect(TT.EQUAL)
         value = self._expr()
-        self._consume_eol()
+        self._consume_semicolon()
         return Assignment(name=name.value, value=value,
                           line=name.line, col=name.column)
 
     def _output_stmt(self) -> OutputStmt:
-        """'output' expr eol"""
-        kw   = self._advance()                  # consume 'output'
+        """'output' expr ';'"""
+        kw   = self._advance()
         expr = self._expr()
-        self._consume_eol()
+        self._consume_semicolon()
         return OutputStmt(expr=expr, line=kw.line, col=kw.column)
 
-    # ── Expressions (precedence climb via separate methods) ───────────────
+    # ── Expressions ───────────────────────────────────────────────────────
 
     def _expr(self) -> ASTNode:
-        """expr := term { ('+' | '-') term }"""
         left = self._term()
         while self._check(TT.PLUS, TT.MINUS):
             op_tok = self._advance()
@@ -186,7 +158,6 @@ class Parser:
         return left
 
     def _term(self) -> ASTNode:
-        """term := power { ('*' | '/') power }"""
         left = self._power()
         while self._check(TT.STAR, TT.SLASH):
             op_tok = self._advance()
@@ -196,17 +167,15 @@ class Parser:
         return left
 
     def _power(self) -> ASTNode:
-        """power := unary { '^' unary }   (right-associative via recursion)"""
         base = self._unary()
         if self._check(TT.CARET):
             op_tok = self._advance()
-            exp    = self._power()              # recurse for right-associativity
+            exp    = self._power()
             return BinaryOp(op="^", left=base, right=exp,
                             line=op_tok.line, col=op_tok.column)
         return base
 
     def _unary(self) -> ASTNode:
-        """unary := '-' unary | factor"""
         if self._check(TT.MINUS):
             op_tok  = self._advance()
             operand = self._unary()
@@ -215,18 +184,15 @@ class Parser:
         return self._factor()
 
     def _factor(self) -> ASTNode:
-        """factor := NUMBER | IDENT | 'input' | '(' expr ')'"""
         tok = self._current()
 
         if tok.type == TT.INTEGER:
             self._advance()
-            return NumberLiteral(value=int(tok.value),
-                                 line=tok.line, col=tok.column)
+            return NumberLiteral(value=int(tok.value), line=tok.line, col=tok.column)
 
         if tok.type == TT.FLOAT:
             self._advance()
-            return NumberLiteral(value=float(tok.value),
-                                 line=tok.line, col=tok.column)
+            return NumberLiteral(value=float(tok.value), line=tok.line, col=tok.column)
 
         if tok.type == TT.IDENT:
             self._advance()
@@ -237,7 +203,7 @@ class Parser:
             return InputExpr(line=tok.line, col=tok.column)
 
         if tok.type == TT.LPAREN:
-            self._advance()         # consume '('
+            self._advance()
             inner = self._expr()
             self._expect(TT.RPAREN, msg="Expected ')' to close parenthesised expression")
             return inner

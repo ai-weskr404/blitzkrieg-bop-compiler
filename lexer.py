@@ -3,44 +3,36 @@
 # Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
 # Course : CS0035 - Programming Languages
 # =============================================================================
-# Architecture is a direct evolution of the regex-based tokenizer from
-# Technical Assessments 1 and 2, refactored into a class with:
-#   • line / column tracking
-#   • both /* ... */ block comments (project spec) and # line comments
-#   • --trace-friendly token list output
-#   • precise error positions via LexError
+# Per project spec:
+#   Rule 1 → All statements end in a SEMICOLON.
+#   Rule 2 → Whitespace is NOT significant (spaces, tabs, newlines all ignored).
+#
+# Therefore \n is treated exactly like a space — silently skipped.
+# Only ';' produces a statement-terminator token.
 # =============================================================================
 
 from __future__ import annotations
-
 from typing import List
 
-from tokens  import Token, TT, KEYWORDS
-from errors  import LexError
+from tokens import Token, TT, KEYWORDS
+from errors import LexError
 
-
-# ---------------------------------------------------------------------------
-# Lexer
-# ---------------------------------------------------------------------------
 
 class Lexer:
     """Converts raw source text into a flat list of Tokens.
 
     Parameters
     ----------
-    source      : the complete source program as a string
-    enable_caret: when True the '^' character produces TT.CARET tokens;
-                  when False it raises a LexError (mirrors --no-exp flag)
+    source        : the complete source program as a string
+    enable_caret  : when True '^' produces TT.CARET; when False raises LexError
     """
 
     def __init__(self, source: str, *, enable_caret: bool = True) -> None:
         self._source       = source
         self._enable_caret = enable_caret
-        self._pos          = 0             # current character index
-        self._line         = 1             # current 1-based line
-        self._col          = 0             # current 0-based column
-
-    # ── Public API ────────────────────────────────────────────────────────
+        self._pos          = 0
+        self._line         = 1
+        self._col          = 0
 
     @property
     def source(self) -> str:
@@ -49,12 +41,10 @@ class Lexer:
     def tokenize(self) -> List[Token]:
         """Scan the entire source and return the token list (including EOF)."""
         tokens: List[Token] = []
-
         while not self._at_end():
             tok = self._next_token()
-            if tok is not None:             # None == whitespace was consumed
+            if tok is not None:
                 tokens.append(tok)
-
         tokens.append(self._make_token(TT.EOF, ""))
         return tokens
 
@@ -64,12 +54,10 @@ class Lexer:
         return self._pos >= len(self._source)
 
     def _peek(self, offset: int = 0) -> str:
-        """Return character at pos+offset without advancing, or '' if past end."""
         idx = self._pos + offset
         return self._source[idx] if idx < len(self._source) else ""
 
     def _advance(self) -> str:
-        """Consume and return the current character; update line/col tracking."""
         ch = self._source[self._pos]
         self._pos += 1
         if ch == "\n":
@@ -80,27 +68,27 @@ class Lexer:
         return ch
 
     def _make_token(self, ttype: str, value: str, *, line: int = -1, col: int = -1) -> Token:
-        return Token(ttype, value, line if line >= 0 else self._line,
-                                   col  if col  >= 0 else self._col)
+        return Token(ttype, value,
+                     line if line >= 0 else self._line,
+                     col  if col  >= 0 else self._col)
 
     # ── Skip helpers ──────────────────────────────────────────────────────
 
     def _skip_line_comment(self) -> None:
-        """Skip from '#' to end of line (does NOT consume the newline itself)."""
+        """Skip from '#' to end of line (newline itself handled as whitespace)."""
         while not self._at_end() and self._peek() != "\n":
             self._advance()
 
     def _skip_block_comment(self) -> None:
-        """Skip /* ... */ block comments that may span multiple lines."""
+        """Skip /* ... */ block comments (may span multiple lines)."""
         start_line = self._line
         start_col  = self._col
-        self._advance()  # consume '*' (caller already consumed '/')
+        self._advance()     # consume '*'
         while not self._at_end():
             ch = self._advance()
             if ch == "*" and self._peek() == "/":
-                self._advance()  # consume closing '/'
+                self._advance()     # consume '/'
                 return
-        # Reached EOF without closing */
         raise LexError(
             "Unterminated block comment (missing */)",
             start_line, start_col, self._source,
@@ -109,18 +97,14 @@ class Lexer:
     # ── Main dispatch ─────────────────────────────────────────────────────
 
     def _next_token(self) -> Token | None:
-        """Scan one logical token and return it, or None for ignored whitespace."""
         start_line = self._line
         start_col  = self._col
         ch         = self._advance()
 
-        # ── Whitespace (non-newline) ───────────────────────────────────────
-        if ch in (" ", "\t", "\r"):
-            return None                         # silently skip
-
-        # ── Newline (statement boundary) ──────────────────────────────────
-        if ch == "\n":
-            return Token(TT.NEWLINE, "\\n", start_line, start_col)
+        # ── ALL whitespace (spaces, tabs, newlines) → ignored ─────────────
+        # Spec rule 2: "Whitespace is not significant"
+        if ch in (" ", "\t", "\r", "\n"):
+            return None
 
         # ── Comments ──────────────────────────────────────────────────────
         if ch == "#":
@@ -140,7 +124,7 @@ class Lexer:
             "=": TT.EQUAL,
             "(": TT.LPAREN,
             ")": TT.RPAREN,
-            ";": TT.SEMICOLON,
+            ";": TT.SEMICOLON,   # ← only valid statement terminator
         }
         if ch in _SIMPLE:
             return Token(_SIMPLE[ch], ch, start_line, start_col)
@@ -171,25 +155,19 @@ class Lexer:
     # ── Scanners for multi-char tokens ────────────────────────────────────
 
     def _scan_number(self, first_ch: str, line: int, col: int) -> Token:
-        """Consume an integer or floating-point literal."""
         buf = first_ch
         while not self._at_end() and self._peek().isdigit():
             buf += self._advance()
-
-        # Optional decimal part
         if self._peek() == "." and self._peek(1).isdigit():
-            buf += self._advance()              # consume '.'
+            buf += self._advance()
             while not self._at_end() and self._peek().isdigit():
                 buf += self._advance()
             return Token(TT.FLOAT, buf, line, col)
-
         return Token(TT.INTEGER, buf, line, col)
 
     def _scan_ident(self, first_ch: str, line: int, col: int) -> Token:
-        """Consume an identifier; check keyword table."""
         buf = first_ch
         while not self._at_end() and (self._peek().isalnum() or self._peek() == "_"):
             buf += self._advance()
-
         ttype = KEYWORDS.get(buf, TT.IDENT)
         return Token(ttype, buf, line, col)

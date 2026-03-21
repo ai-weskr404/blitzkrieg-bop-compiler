@@ -1,0 +1,11 @@
+/* samples/input_output.src
+   Demonstrates: reading from user and computing with their input */
+
+var x = input;
+var y = input;
+
+var total = x + y;
+output total;
+
+var doubled = total * 2;
+output doubled;

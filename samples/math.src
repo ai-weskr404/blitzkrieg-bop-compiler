@@ -1,0 +1,28 @@
+/* samples/math.src — all operators, precedence, parentheses */
+
+var a = 10;
+var b = 3;
+
+var add_result = a + b;
+output add_result;          /* expects: 13 */
+
+var sub_result = a - b;
+output sub_result;          /* expects: 7  */
+
+var mul_result = a * b;
+output mul_result;          /* expects: 30 */
+
+var div_result = a / b;
+output div_result;          /* expects: 3.333... */
+
+var exp_result = 2 ^ 3 ^ 2;
+output exp_result;          /* expects: 512 */
+
+var paren_result = (a + b) * 2;
+output paren_result;        /* expects: 26  */
+
+var neg = -a;
+output neg;                 /* expects: -10 */
+
+var complex = (a + b) * (a - b) / 2;
+output complex;             /* expects: 16.5 */
