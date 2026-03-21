@@ -1,7 +1,7 @@
 # =============================================================================
 # cli.py  –  Command-line interface helpers
 # Authors: Nadales, Russel Rome F. | Ornos, Csypress Klent
-# Course : CSTPLANGS - Translation of Programming Language
+# Course : CS0035 - Programming Languages
 # =============================================================================
 # Provides:
 #   • build_arg_parser()  – argparse configuration
